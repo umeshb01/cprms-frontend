@@ -50,10 +50,16 @@ export default function Home() {
             Go to Login
           </Link>
           <Link
-            to="/dashboard"
+            to="/public-search"
             className="px-8 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm backdrop-blur-sm transition-all duration-200 active:scale-95"
           >
-            View Dashboard
+            Public Search Portal 🔍
+          </Link>
+          <Link
+            to="/dashboard"
+            className="px-8 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold text-sm backdrop-blur-sm transition-all duration-200 active:scale-95"
+          >
+            Dashboard
           </Link>
         </div>
 

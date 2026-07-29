@@ -204,3 +204,81 @@ export async function deleteRecommendation(id) {
   _recommendations.splice(index, 1)
   return { success: true, id: Number(id) }
 }
+
+/**
+ * Search recommendations by candidateName, service, and commission filters.
+ *
+ * @param {Object} filters
+ * @returns {Promise<Array>}
+ */
+export async function searchRecommendations(filters = {}) {
+  await delay(400)
+
+  return _recommendations.filter((r) => {
+    const matchesName =
+      !filters.candidateName ||
+      r.candidateName.toLowerCase().includes(filters.candidateName.toLowerCase())
+
+    const matchesService =
+      !filters.service ||
+      r.service.toLowerCase().includes(filters.service.toLowerCase())
+
+    const matchesCommission =
+      !filters.commission || r.commission === filters.commission
+
+    return matchesName && matchesService && matchesCommission
+  })
+}
+
+/**
+ * Generate aggregated report data grouped by a specific field.
+ *
+ * @param {string} reportType - 'commission' | 'service' | 'category' | 'gender'
+ * @returns {Promise<Array<{ label: string, count: number }>>}
+ */
+export async function getReportData(reportType = 'commission') {
+  await delay(400)
+
+  const groupByMap = {
+    commission: 'commission',
+    service: 'service',
+    category: 'category',
+    gender: 'gender',
+  }
+
+  const groupByField = groupByMap[reportType] || 'commission'
+
+  const counts = {}
+  _recommendations.forEach((r) => {
+    const key = r[groupByField] || 'Unspecified'
+    counts[key] = (counts[key] || 0) + 1
+  })
+
+  return Object.entries(counts).map(([label, count]) => ({ label, count }))
+}
+
+/**
+ * Public search for citizens — filter by candidate name or recommendation number.
+ * Exposes curated public fields without dump on initial page load.
+ *
+ * @param {Object} filters - { name?: string, recNumber?: string }
+ * @returns {Promise<Array>}
+ */
+export async function publicSearch(filters = {}) {
+  await delay(400)
+
+  return _recommendations.filter((r) => {
+    const matchesName =
+      !filters.name ||
+      r.candidateName.toLowerCase().includes(filters.name.toLowerCase())
+
+    const matchesRecNumber =
+      !filters.recNumber ||
+      r.recommendationNumber.toLowerCase().includes(filters.recNumber.toLowerCase())
+
+    return matchesName && matchesRecNumber
+  })
+}
+
+
+

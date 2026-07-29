@@ -5,6 +5,9 @@ import Home from '../pages/Home'
 import RecommendationList from '../pages/RecommendationList'
 import RecommendationCreate from '../pages/RecommendationCreate'
 import RecommendationEdit from '../pages/RecommendationEdit'
+import Search from '../pages/Search'
+import Reports from '../pages/Reports'
+import PublicSearch from '../pages/PublicSearch'
 import Layout from '../components/Layout'
 import ProtectedRoute from '../components/ProtectedRoute'
 
@@ -18,6 +21,7 @@ export default function AppRoutes() {
         {/* Public routes (no layout/sidebar) */}
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
+        <Route path="/public-search" element={<PublicSearch />} />
 
         {/* Admin routes (wrapped in ProtectedRoute + Layout with Sidebar) */}
         <Route
@@ -66,6 +70,28 @@ export default function AppRoutes() {
             <ProtectedRoute>
               <Layout>
                 <RecommendationEdit />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Search />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Reports />
               </Layout>
             </ProtectedRoute>
           }
