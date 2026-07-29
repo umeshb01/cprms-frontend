@@ -8,6 +8,10 @@ import RecommendationEdit from '../pages/RecommendationEdit'
 import Search from '../pages/Search'
 import Reports from '../pages/Reports'
 import PublicSearch from '../pages/PublicSearch'
+import MasterData from '../pages/MasterData'
+import AuditLog from '../pages/AuditLog'
+import UserManagement from '../pages/UserManagement'
+import UserCreate from '../pages/UserCreate'
 import Layout from '../components/Layout'
 import ProtectedRoute from '../components/ProtectedRoute'
 
@@ -92,6 +96,49 @@ export default function AppRoutes() {
             <ProtectedRoute>
               <Layout>
                 <Reports />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/master-data"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <MasterData />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/audit-logs"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <AuditLog />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <UserManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/users/new"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <UserCreate />
               </Layout>
             </ProtectedRoute>
           }

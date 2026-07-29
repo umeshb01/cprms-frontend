@@ -15,7 +15,7 @@
 const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // ---------------------------------------------------------------------------
-// In-memory data store (acts like a database table)
+// In-memory data store (acts like a database table with soft deletion)
 // ---------------------------------------------------------------------------
 let _recommendations = [
   {
@@ -37,6 +37,7 @@ let _recommendations = [
     commission: 'Public Service Commission',
     category: 'Open Competition',
     remarks: 'Recommended after written and interview process.',
+    isDeleted: false,
   },
   {
     id: 2,
@@ -57,6 +58,7 @@ let _recommendations = [
     commission: 'Public Service Commission',
     category: 'Women Quota',
     remarks: 'Selected under women inclusive category.',
+    isDeleted: false,
   },
   {
     id: 3,
@@ -68,35 +70,37 @@ let _recommendations = [
     grandfatherName: 'Bal Bahadur Tamang',
     gender: 'Male',
     service: 'Nepal Engineering Service',
-    group: 'Civil',
-    subGroup: 'Irrigation',
-    level: 'Non-Gazetted Second Class',
+    group: 'Civil Engineering',
+    subGroup: 'Building & Architecture',
+    level: 'Gazetted Third Class',
     position: 'Sub-Engineer',
-    recommendationDate: '2081-04-20',
+    recommendationDate: '2081-04-18',
     fiscalYear: '2080/081',
     commission: 'Public Service Commission',
     category: 'Inclusive — Adibasi/Janajati',
-    remarks: 'Qualified through technical examination.',
+    remarks: 'Category verification confirmed by commission.',
+    isDeleted: false,
   },
   {
     id: 4,
     recommendationNumber: 'REC-2081-004',
     candidateName: 'Anita Thapa Magar',
-    permanentAddress: 'Rupandehi, Lumbini Province',
-    fatherName: 'Khadga Bahadur Thapa',
-    motherName: 'Rupa Thapa',
-    grandfatherName: 'Indra Bahadur Thapa',
+    permanentAddress: 'Butwal, Lumbini Province',
+    fatherName: 'Karna Bahadur Thapa',
+    motherName: 'Maya Thapa',
+    grandfatherName: 'Bir Bahadur Thapa',
     gender: 'Female',
     service: 'Nepal Education Service',
-    group: 'Teaching',
-    subGroup: 'Secondary Education',
-    level: 'Non-Gazetted First Class',
+    group: 'School Education',
+    subGroup: 'Secondary',
+    level: 'Gazetted Third Class',
     position: 'Secondary Level Teacher',
     recommendationDate: '2081-05-10',
     fiscalYear: '2080/081',
     commission: 'Public Service Commission',
     category: 'Open Competition',
-    remarks: '',
+    remarks: 'Posted to Western Regional Directorate.',
+    isDeleted: false,
   },
   {
     id: 5,
@@ -117,6 +121,7 @@ let _recommendations = [
     commission: 'Judicial Service Commission',
     category: 'Open Competition',
     remarks: 'Pending document verification.',
+    isDeleted: false,
   },
 ]
 
@@ -128,14 +133,13 @@ let _nextId = _recommendations.length + 1
 // ---------------------------------------------------------------------------
 
 /**
- * Fetch all recommendations.
+ * Fetch all active recommendations (hides soft-deleted records).
  *
- * @returns {Promise<Array>} Resolves with an array of recommendation objects.
+ * @returns {Promise<Array>} Resolves with non-deleted recommendation objects.
  */
 export async function getRecommendations() {
   await delay(500)
-  // Return a shallow copy so external mutations don't affect the store
-  return [..._recommendations]
+  return _recommendations.filter((r) => !r.isDeleted)
 }
 
 /**
@@ -143,11 +147,11 @@ export async function getRecommendations() {
  *
  * @param {number|string} id
  * @returns {Promise<Object>} Resolves with the matching recommendation.
- * @throws Will throw an error if no record is found.
+ * @throws Will throw an error if no record is found or if deleted.
  */
 export async function getRecommendationById(id) {
   await delay(300)
-  const record = _recommendations.find((r) => r.id === Number(id))
+  const record = _recommendations.find((r) => r.id === Number(id) && !r.isDeleted)
   if (!record) {
     throw new Error(`Recommendation with id "${id}" not found.`)
   }
@@ -158,13 +162,14 @@ export async function getRecommendationById(id) {
  * Create a new recommendation.
  *
  * @param {Object} data  Fields matching the recommendation schema (id is auto-generated).
- * @returns {Promise<Object>} Resolves with the newly created recommendation (including generated id).
+ * @returns {Promise<Object>} Resolves with the newly created recommendation.
  */
 export async function createRecommendation(data) {
   await delay(600)
   const newRecord = {
     ...data,
     id: _nextId++,
+    isDeleted: false,
   }
   _recommendations.push(newRecord)
   return { ...newRecord }
@@ -180,7 +185,7 @@ export async function createRecommendation(data) {
  */
 export async function updateRecommendation(id, updates) {
   await delay(500)
-  const index = _recommendations.findIndex((r) => r.id === Number(id))
+  const index = _recommendations.findIndex((r) => r.id === Number(id) && !r.isDeleted)
   if (index === -1) {
     throw new Error(`Recommendation with id "${id}" not found.`)
   }
@@ -189,20 +194,20 @@ export async function updateRecommendation(id, updates) {
 }
 
 /**
- * Delete a recommendation by ID.
+ * Soft-delete a recommendation by ID (marks isDeleted = true, keeps in database for audit).
  *
  * @param {number|string} id
  * @returns {Promise<{ success: boolean, id: number }>}
  * @throws Will throw an error if no record is found.
  */
 export async function deleteRecommendation(id) {
-  await delay(400)
+  await delay(500)
   const index = _recommendations.findIndex((r) => r.id === Number(id))
-  if (index === -1) {
-    throw new Error(`Recommendation with id "${id}" not found.`)
+  if (index !== -1) {
+    _recommendations[index].isDeleted = true
+    return { success: true, id: Number(id) }
   }
-  _recommendations.splice(index, 1)
-  return { success: true, id: Number(id) }
+  throw new Error(`Recommendation with id "${id}" not found.`)
 }
 
 /**
@@ -215,6 +220,8 @@ export async function searchRecommendations(filters = {}) {
   await delay(400)
 
   return _recommendations.filter((r) => {
+    if (r.isDeleted) return false
+
     const matchesName =
       !filters.candidateName ||
       r.candidateName.toLowerCase().includes(filters.candidateName.toLowerCase())
@@ -231,7 +238,7 @@ export async function searchRecommendations(filters = {}) {
 }
 
 /**
- * Generate aggregated report data grouped by a specific field.
+ * Generate aggregated report data grouped by a specific field (excluding deleted records).
  *
  * @param {string} reportType - 'commission' | 'service' | 'category' | 'gender'
  * @returns {Promise<Array<{ label: string, count: number }>>}
@@ -250,6 +257,7 @@ export async function getReportData(reportType = 'commission') {
 
   const counts = {}
   _recommendations.forEach((r) => {
+    if (r.isDeleted) return
     const key = r[groupByField] || 'Unspecified'
     counts[key] = (counts[key] || 0) + 1
   })
@@ -259,7 +267,6 @@ export async function getReportData(reportType = 'commission') {
 
 /**
  * Public search for citizens — filter by candidate name or recommendation number.
- * Exposes curated public fields without dump on initial page load.
  *
  * @param {Object} filters - { name?: string, recNumber?: string }
  * @returns {Promise<Array>}
@@ -268,6 +275,8 @@ export async function publicSearch(filters = {}) {
   await delay(400)
 
   return _recommendations.filter((r) => {
+    if (r.isDeleted) return false
+
     const matchesName =
       !filters.name ||
       r.candidateName.toLowerCase().includes(filters.name.toLowerCase())
@@ -279,6 +288,3 @@ export async function publicSearch(filters = {}) {
     return matchesName && matchesRecNumber
   })
 }
-
-
-

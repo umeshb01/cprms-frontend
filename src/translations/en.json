@@ -1,0 +1,17 @@
+{
+  "dashboard": "Dashboard",
+  "recommendations": "Recommendations",
+  "search": "Search",
+  "reports": "Reports",
+  "masterData": "Master Data",
+  "auditLog": "Audit Log",
+  "users": "Users",
+  "home": "Home",
+  "addNew": "Add New",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "view": "View",
+  "login": "Sign In",
+  "logout": "Logout"
+}

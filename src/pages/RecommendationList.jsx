@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getRecommendations, deleteRecommendation } from '../services/recommendationService'
+import { usePagination } from '../hooks/usePagination'
 
 export default function RecommendationList() {
   const navigate = useNavigate()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  const { paginatedItems, currentPage, setCurrentPage, totalPages } = usePagination(records, 5)
 
   // ── loadData is a standalone function so both useEffect (initial load)
   //    and handleDelete (post-delete refresh) can call it without duplicating logic.
@@ -31,7 +34,7 @@ export default function RecommendationList() {
     if (!window.confirm('Delete this record?')) return
     try {
       await deleteRecommendation(id)
-      loadData() // refresh table after delete
+      loadData() // refresh table after soft delete
     } catch (err) {
       alert(err.message || 'Delete failed.')
     }
@@ -64,7 +67,7 @@ export default function RecommendationList() {
           </div>
           <Link
             to="/recommendations/new"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition active:scale-95"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition active:scale-95 shadow-xs"
           >
             <span className="text-lg leading-none">+</span> Add New
           </Link>
@@ -85,7 +88,7 @@ export default function RecommendationList() {
           </div>
         )}
 
-        {/* Table */}
+        {/* Table & Pagination */}
         {records.length > 0 && (
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             <table className="w-full text-sm">
@@ -100,43 +103,70 @@ export default function RecommendationList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {records.map((r, index) => (
-                  <tr key={r.id} className="hover:bg-indigo-50/40 transition-colors">
-                    <td className="px-5 py-4 text-slate-400 tabular-nums">{index + 1}</td>
-                    <td className="px-5 py-4">
-                      <span className="font-mono text-indigo-600 font-medium">{r.recommendationNumber}</span>
-                    </td>
-                    <td className="px-5 py-4 text-slate-800 font-medium">{r.candidateName}</td>
-                    <td className="px-5 py-4 text-slate-600">{r.service}</td>
-                    <td className="px-5 py-4 text-slate-600">{r.position}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => navigate(`/recommendations/${r.id}`)}
-                          className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => navigate(`/recommendations/${r.id}/edit`)}
-                          className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 transition"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(r.id)}
-                          className="text-xs font-semibold text-red-500 hover:text-red-700 transition"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {paginatedItems.map((r, index) => {
+                  const globalIndex = (currentPage - 1) * 5 + index + 1
+                  return (
+                    <tr key={r.id} className="hover:bg-indigo-50/40 transition-colors">
+                      <td className="px-5 py-4 text-slate-400 tabular-nums">{globalIndex}</td>
+                      <td className="px-5 py-4">
+                        <span className="font-mono text-indigo-600 font-medium">{r.recommendationNumber}</span>
+                      </td>
+                      <td className="px-5 py-4 text-slate-800 font-medium">{r.candidateName}</td>
+                      <td className="px-5 py-4 text-slate-600">{r.service}</td>
+                      <td className="px-5 py-4 text-slate-600">{r.position}</td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => navigate(`/recommendations/${r.id}`)}
+                            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => navigate(`/recommendations/${r.id}/edit`)}
+                            className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 transition"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(r.id)}
+                            className="text-xs font-semibold text-red-500 hover:text-red-700 transition"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
-            <div className="px-5 py-3 border-t border-slate-100 text-xs text-slate-400">
-              {records.length} record{records.length !== 1 ? 's' : ''} total
+
+            {/* Pagination & Footer Controls */}
+            <div className="px-5 py-3.5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+              <div>
+                Showing {Math.min((currentPage - 1) * 5 + 1, records.length)} to {Math.min(currentPage * 5, records.length)} of {records.length} records
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3.5 py-1.5 border border-slate-200 rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  Previous
+                </button>
+                <span className="font-medium text-slate-700">
+                  Page <strong className="font-semibold text-indigo-600">{currentPage}</strong> of {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3.5 py-1.5 border border-slate-200 rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         )}
