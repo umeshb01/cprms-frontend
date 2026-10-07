@@ -6,7 +6,7 @@ import { createRecommendation } from '../services/recommendationService'
 // One object holds ALL field values. When you add more fields later,
 // just add another key here — no extra useState calls needed.
 const INITIAL_FORM = {
-  recommendationNumber: '',
+  nidNumber: '',
   candidateName: '',
   fatherName: '',
   service: '',
@@ -16,9 +16,9 @@ const INITIAL_FORM = {
 export default function RecommendationCreate() {
   const navigate = useNavigate()
 
-  const [form, setForm]       = useState(INITIAL_FORM)
+  const [form, setForm] = useState(INITIAL_FORM)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError]     = useState(null)
+  const [error, setError] = useState(null)
 
   // ─── handleChange pattern ──────────────────────────────────────────────
   // Every <input> carries a `name` attribute that matches a key in `form`.
@@ -72,18 +72,18 @@ export default function RecommendationCreate() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
 
-            {/* Recommendation Number */}
+            {/* NID Number */}
             <div>
-              <label htmlFor="recommendationNumber" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                Recommendation Number
+              <label htmlFor="nidNumber" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                NID Number
               </label>
               <input
-                id="recommendationNumber"
-                name="recommendationNumber"
+                id="nidNumber"
+                name="nidNumber"
                 type="text"
                 required
-                placeholder="e.g. REC-2081-006"
-                value={form.recommendationNumber}
+                placeholder="e.g. 123-456-789"
+                value={form.nidNumber}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-400 transition"
               />
